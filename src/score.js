@@ -9,9 +9,15 @@
  *     (or put it as a bookmarklet https://caiorss.github.io/bookmarklet-maker/)
  *  2. Introduce a list of players separated by spaces.
  *  3. Click Ok and wait until the scoreboard loads.
+ * 
+ * For bookmarking, you can pass some arguments to the script, e.g.
+ * replace the "()" at the end of the bookmarklet with:
+ *     ({ country: 'AR', maxPlayers: 30, maxRequests: 20, run: true })
+ * This allows to pre-fill the form with the defaults and run the 
+ * script automatically.
  */
 
-(() => {
+((args) => {
   'use strict';
 
   // DO NOT use a very small interval, don't want to abuse BGA servers.
@@ -101,9 +107,28 @@
     ui.style.border = '2px solid black';
     ui.style.boxShadow = '7px 7px #444';
 
+    // Autofill form with defaults (passed as arguments in the bookmark)
+    if (args && args.country) {
+      countrySel.value = args.country;
+    }
+    if (args && args.users) {
+      if (typeof args.users === 'string') {
+        userList.value = args.users;
+      } else if (args.users.length) { // guess it's an array
+        userList.value = args.users.join(',');
+      }
+    }
+    if (args && args.maxPlayers) {
+      limitUInput.value = args.maxPlayers;
+    }
+    if (args && args.maxRequests) {
+      limitRInput.value = args.maxRequests;
+    }
+
+
     button.classList = 'bgabutton bgabutton_blue';
     button.innerText = 'Run';
-    button.onclick   = () => {
+    function runNow() {
       const players = parsePlayers(userList.value);
       const limitU = parseInt(limitUInput.value);
       const limitR = parseInt(limitRInput.value);
@@ -127,6 +152,10 @@
         button.classList = 'bgabutton bgabutton_blue';
       });
     };
+    button.onclick = runNow;
+    if (args && args.run) {
+      runNow();
+    }
 
     document.body.appendChild(ui);
   }
