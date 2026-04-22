@@ -158,6 +158,12 @@
     }
 
     document.body.appendChild(ui);
+
+    // Prepare CSS rule to hide players
+    const styles = '.hidden { display: none !important; }';
+    const styleElement = document.createElement('style');
+    styleElement.textContent = styles;
+    document.head.appendChild(styleElement);
   }
 
   /**
@@ -215,7 +221,12 @@
   async function loadMorePlayers() {
     // Just click the button and wait.
     // Not the smartest way but works.
-    const button = document.querySelector('#seemoreRanking') || document.querySelector('#seemore') || document.querySelector('#seemore_rankings') || document.querySelector('#prestige_see_more');
+    let button = document.querySelector('#seemoreRanking') || document.querySelector('#seemore') || document.querySelector('#seemore_rankings') || document.querySelector('#prestige_see_more');
+    // If none were found. Try alternative selector (this could become the main implementation later)
+    if (!button) {
+      const query = document.evaluate("\/\/span[contains(., 'Display more')]", document, null, XPathResult.ANY_TYPE, null);
+      button = query.iterateNext();
+    }
     button.click();
     await new Promise(done => setTimeout(() => done(), REQUEST_INTERVAL));
   }
@@ -237,10 +248,10 @@
    */
   function getVisiblePlayers() {
     if (document.getElementById('mainRanking')) {
-      return document.querySelectorAll('#mainRanking .player_in_list:not(.hidden)');
+      return document.querySelectorAll('.bga-ranked-player-list .bga-ranked-player-list__entry:not(.hidden)');
     }
     else {
-      return document.querySelectorAll('.gameranking .player_in_list:not(.hidden)');
+      return document.querySelectorAll('.bga-ranked-player-list .bga-ranked-player-list__entry:not(.hidden)');
     }
   }
 
@@ -279,7 +290,7 @@
     for (const player of getVisiblePlayers()) {
       const name = player.querySelector('a.playername').innerText.toLowerCase();
 
-      if (country && player.querySelector('.bga-flag').dataset.country !== country) {
+      if (country && player.querySelector('.bga-flag').getAttribute('data-country') !== country) {
         player.classList.add('hidden');
       }
 
